@@ -1,0 +1,81 @@
+---
+title: "Week 4 Assignment"
+author: "Brian Kreis"
+date: "September 20, 2015"
+output: html_document
+---
+
+Call the stringr library
+
+```{r}
+library (stringr)
+```
+
+4a. This expression will return any sequence of numbers in our character string that ends with a $ symbol.
+```{r}
+example.4a <- "House number 659 sold for 305678$"
+foura <- unlist(str_extract_all(example.4a, "[0-9]+\\$"))
+foura
+```
+
+4b. This expression will return any sequence of letters that is between one and four letters.
+```{r}
+example.4b <- "The pilgrim waited for a week in the tropical heat"
+fourb <- str_extract_all(example.4b, "\\b[a-z]{1,4}\\b")
+fourb
+```
+
+
+4c.This expression will return the full text string provided that it ends with ".txt"
+```{r}
+example.4c <- "sam.csv jerry.exc richard.txt john.doc rachel.txt"
+fourc <- unlist(str_extract_all(example.4c, ".*?\\.txt$"))
+fourc
+```
+
+4d. This expression returns the date within the text string.
+```{r}
+example.4d <- "04/08/1955=jim's birthday"
+fourd <- str_extract_all(example.4d, "\\d{2}/\\d{2}/\\d{4}")
+fourd
+```
+
+4e. This expression is pulling out html code from a string and selecting the first match. I'm not too sure on how back referencing works and found the book example to be confusing. Hopefully, we can go through this on this week's call. 
+```{r}
+example.4e <- "<p>Paragraph 1.</p>, <p>Paragraph 2.</p>, How to create paragraphs"
+foure <- str_extract(example.4e, "<(.+?)>.+?</\\1>")
+foure
+```
+
+5. 
+```{r}
+example.4a <- "House number 659 sold for 305678$"
+prices5 <- unlist(str_extract_all(example.4a, "[[:digit:]]{4,10}."))
+prices5
+```
+
+6a.
+```{r}
+example6.a <- "chunkylover53[at]aol[dot]com"
+example6.a1 <- str_replace_all(example6.a, pattern = "\\[at\\]", replacement = "@")
+example6.a2 <- str_replace_all(example6.a1, pattern = "\\[dot\\]", replacement = ".")
+example6.a2
+```
+
+6b.This expression would fail because without enclosing the word digit in two sets of brackets it will return any instance of a semicolon and the letters within the word digit.Enclosing the word in two brackets, as shown below, will return the numbers.
+```{r}
+example6.b <- "chunkylover53[at]aol[dot]com"
+sixb <- str_extract_all(example6.b, "[[:digit:]]")
+sixb
+```
+
+6c. These expressions are case senstitive. "\\D" returns all characters that are not digits while "\\d" would return all digits in the string(as shown below)
+```{r}
+example6.c <- "chunkylover53[at]aol[dot]com"
+sixc <- str_extract_all(example6.b, "[\\d]")
+sixc
+```
+
+
+
+

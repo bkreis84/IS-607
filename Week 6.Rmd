@@ -1,0 +1,73 @@
+---
+title: "Week 6"
+author: "Brian Kreis"
+date: "October 4, 2015"
+output: html_document
+---
+
+First we call the libraries that we will be using
+
+```{r}
+library(dplyr)
+library(tidyr)
+```
+
+We need to bring in our csv file which was created using MySQL. Data is in a wide format.
+
+```{r}
+flights <- read.csv("https://raw.githubusercontent.com/bkreis84/Kreis-Week-6/master/delays.csv", header = TRUE)
+write.table(flights, sep = ",");
+tbl_df(flights)
+```
+
+
+The data needs to be cleaned up a bit, so we add a couple missing values and change the names of two columns in order to make them more descriptive. 
+
+```{r}
+flights <- flights[-3,]
+flights <- rename(flights, Airline = X, Status = X.1)
+flights[2, "Airline"] = "ALASKA"
+flights[4, "Airline"] = "AM WEST"
+tbl_df(flights)
+```
+
+In order to tidy up our data we need to first use the gather function. This will change the city names, which were previously listed as column headers, into our rows which represent observations. The Key is the city names and the value column is our frequency values.
+
+```{r}
+flights <- gather(flights, "City", "n", 3:7)
+tbl_df(flights)
+```
+
+We now will make variables out of the "on time" & "delayed"" values currently listed in our data set. We use the spread function for this. 
+
+```{r}
+flights <- spread(flights, Status, n)
+tbl_df(flights)
+```
+
+I was having some issues with my column name "on time," so I found it necessary to change the name to have no spaces.
+
+```{r}
+colnames(flights)[4] <- "on_time"
+```
+
+I now used the mutate function to add a column to the data set which shows the percentage of flights that were delayed. Looking at the results, AM WEST had higher levels of flight delays for each indvidual city as compared to ALASKA. 
+
+```{r}
+flights <- flights %>% 
+  mutate(percent_delayed = (delayed/(on_time + delayed)*100))
+
+flights$percent_delayed <- round(flights$percent_delayed, digits = 2)
+tbl_df(flights)
+
+```
+
+We then look at the performance of the airlines as a whole. It seems that AM WEST actually had a lower level of overall delays. Looking back at our individual city output, this looks like it is the result of the much higher volume of flights operated by AM WEST (particularly in Phoenix where the company also had a relatively low delay percentage)
+
+```{r}
+flights2 <- flights %>% 
+  group_by(Airline) %>% 
+  summarise(percent_delayed = sum(delayed)/(sum(on_time) + sum(delayed))*100)
+tbl_df(flights2)
+```
+

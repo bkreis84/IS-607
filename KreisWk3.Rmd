@@ -1,0 +1,55 @@
+
+---
+title: "KreisWk3"
+author: "BK"
+date: "September 13, 2015"
+output: html_document
+---
+
+Set working directory
+
+```{r}
+setwd("/Users/BK/Documents/GitHub/KreisWk3")
+```
+
+Import data
+
+```{r}
+Bridges <- read.csv("https://archive.ics.uci.edu/ml/machine-learning-databases/bridges/bridges.data.version1", header = FALSE)
+write.table(Bridges, file = "Bridges.csv", sep = ",")
+```
+
+Set column names
+
+```{r}
+names(Bridges) <- c("ID", "RIVER", "LOCATION", "ERECTED", "PURPOSE", "LENGTH", "LANES", "CLEAR-G", "T-OR-D", "MATERIAL", "SPAN", "REL-L", "TYPE")
+```
+
+Check if number of lanes is a factor, convert it to numeric
+
+```{r}
+is.factor(Bridges$LANES)
+Bridges$LANES <- as.numeric(Bridges$LANES)
+```
+
+View initial dimensions and verify changes
+
+```{r}
+dim(Bridges)
+head(Bridges)
+```
+
+Create data frame with selected columns
+
+```{r}
+df <- data.frame(Bridges$ID, Bridges$RIVER, Bridges$LANES, Bridges$LENGTH)
+```
+
+
+Subset data to show bridges with 4 or more lanes and display observations
+
+```{r}
+x <- subset(df, Bridges$LANES >= 4)
+x
+```
+

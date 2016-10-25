@@ -1,0 +1,41 @@
+<books>
+	<book1>
+		<title>A Storm of Swords</title>
+		<year_published>2000</year_published>
+		<pages>992</pages>
+		<genre>fantasy</genre>
+		<author>
+			<author1>George R.R. Martin</author1>
+			<author2>NA</author2>
+			<author3>NA</author3>
+			<author4>NA</author4>
+		</author>
+	</book1>
+
+	<book2>
+		<title>Automated Data Collection with R</title>
+		<year_published>2015</year_published>
+		<pages>480</pages>
+		<genre>educational</genre>
+		<author>
+			<author1>Simon Munzert</author1>
+			<author2>Christian Rubba </author2>
+			<author3>Peter Meissner</author3>
+			<author4>Dominic Nyhuis</author4>
+		</author>
+	</book2>
+
+	<book3>
+		<title>A Short History of Nearly Everything</title>
+		<year_published>2003</year_published>
+		<pages>544</pages>
+		<genre>non-fiction</genre>
+		<author>
+			<author1>Bill Bryson</author1>
+			<author2>NA</author2>
+			<author3>NA</author3>
+			<author4>NA</author4>
+		</author>
+	</book3>
+	
+</books>

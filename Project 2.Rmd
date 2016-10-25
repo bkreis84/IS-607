@@ -1,0 +1,190 @@
+---
+title: "Project 2"
+author: "Brian Kreis"
+date: "October 11, 2015"
+output: html_document
+---
+##Crime Stats
+
+Loading of libraries and initial cleanup work
+```{r}
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+
+crime <- read.csv("https://raw.githubusercontent.com/bkreis84/Project-2/master/table_12_crime_trends_by_population_group_2012-2013.csv", header = TRUE, skip = 3, check.names = FALSE, stringsAsFactors = FALSE)
+
+colnames(crime)[2] <- "Year"
+
+crime <- crime[1:42,1:14]
+tbl_df(crime)
+
+```
+
+
+We do not care about the percent change in our analysis so we can remove this using a logical vector. 
+
+```{r}
+crimex <- crime[c(TRUE, TRUE, FALSE),]
+```
+
+We now replace blanks with NA values so that we can then use the fill function to fill in missing values using the value above.
+
+```{r}
+crimex[crimex==""] <- NA
+
+crimex <- crimex %>% 
+  fill(`Population group`) 
+```
+
+After noticing some errors (likely spaces on the end of character strings), we change our variable names. 
+
+We then select the specific variables we want using the "select" function. We then use the arrange function to sort our data in a way that we can once again use the fill function to fill in missing values with values from above. 
+
+```{r}
+colnames(crimex)[3] <- "Violent crime"
+colnames(crimex)[8] <- "Property crime"
+colnames(crimex)[14] <- "2013 estimated population"
+
+crimex <- select(crimex, Year,`Population group`, `Violent crime`, `Property crime`, `2013 estimated population`)
+
+crimex <- arrange(crimex, `Population group`, desc(Year)) 
+
+crimex <- crimex %>% 
+  fill(`2013 estimated population`)
+```
+
+I found a function to trim data using regular expressions. I hope to learn more about functions in the coming weeks. 
+http://r.789695.n4.nabble.com/Remove-space-from-string-td4292042.html
+
+Once again remove data not pertinant to our analysis.
+
+```{r}
+trim <- function(x) gsub(",|^[[:space:]]+|[[:space:]]+$", "", x) 
+crimex <- data.frame(sapply(crimex, trim), check.names = FALSE)
+#realizing that I need to dive into functions more
+
+crimex <- crimex[-19:-28,]
+crimex <- crimex[-1:-6,]
+```
+
+Change our character values to numeric now that they have been trimmed. This step took me quite awhile because every time I tried to convert the values to numeric, they were filled in with NA values. This is why I needed the trim function above (there were characters and spaces preventing the conversion)
+
+```{r}
+crimex$`Violent crime` <- as.numeric(as.character(crimex$`Violent crime`))
+crimex$`Property crime` <- as.numeric(as.character(crimex$`Property crime`))
+crimex$`Population group` <- as.character(crimex$`Population group`)
+crimex$`2013 estimated population` <- as.numeric(as.character(crimex$`2013 estimated population`))
+
+vcrime <- select(crimex, -`Property crime`)
+pcrime <- select(crimex, -`Violent crime`)
+```
+
+I spread the data in order to get the year as a variable (I later determined that this did not really tidy the data). I also created new variables which showed the rate of violent crime per 100,000 population. 
+
+```{r}           
+vcrime <- spread(vcrime, Year, `Violent crime`)
+
+vcrime <- mutate(vcrime, `2012 Violence Rate` = vcrime$`2012` / (vcrime$`2013 estimated population` / 100000))
+vcrime <- mutate(vcrime, `2013 Violence Rate` = vcrime$`2013` / (vcrime$`2013 estimated population` / 100000))
+```
+
+```{r}
+# Realized that the crimex set is actually the tidy one, so used that for the graph.
+crimex <- mutate(crimex, `Violence Rate` = crimex$`Violent crime` / (crimex$`2013 estimated population` / 100000))
+crimex$`Violence Rate` <- as.integer(crimex$`Violence Rate`)
+tbl_df(crimex)
+
+ggplot(crimex, aes(x=Year, y=`Violence Rate`, color=`Population group`, group=`Population group`)) +
+  geom_point(size=2) +
+  geom_line(size=2)
+```
+
+##MLB Stats
+
+This one is relatively straightforward.We begin with pulling in the data and removing unnecessary columns
+
+```{r}
+wins <- read.csv("https://raw.githubusercontent.com/bkreis84/Project-2/master/wins.csv")
+wins <- wins[,-5]
+wins <- wins[,-2]
+```
+
+We then use the gather function to tidy up or data.
+
+```{r}
+wins <- gather(wins, "Team", "Wins", 2:31)
+```
+
+This graph is relatively useless! Just for practice
+
+```{r}
+ggplot(wins, aes(x=Year, y=Wins, color=Team, group=Team)) +
+  geom_point(size=2) +
+  geom_line(size=2)
+```
+
+
+##Giants & Jets
+Again we start with bringing in the data and doing some intial cleanup
+
+```{r}
+giants <- read.csv("https://raw.githubusercontent.com/bkreis84/Project-2/master/Jets%20Giants.csv")
+tbl_df(giants)
+
+
+giants[3:5, "Team"] <- "Jets"
+giants[8:10, "Team"] <- "Giants"
+
+c("Team", "Stats", "2007", "2008", "2009", "2010", "2011", "2012", "2013", "2014") -> colnames(giants)
+
+giants <- giants[-1,]
+giants <- giants[-5,]
+```
+
+We use the gather and spread functions to tidy the data and mutate to create a new variable.
+
+```{r}
+giants <- gather(giants, "Year", "n", 3:10)
+
+giants <- spread(giants, "Stats", n)
+tbl_df(giants)
+
+giants <- giants %>% 
+  mutate(`Total Yards` = `Total Passing Yards` + `Total Rushing Yards`)
+```  
+  
+We then use various dplyr functions to obtain information for our analysis
+  
+```{r}  
+giants1 <-  giants %>% 
+  group_by(Team, Year) %>% 
+  summarise (`Passing Ratio` = `Total Passing Yards` / `Total Yards`,
+             `Rushing Ratio` = `Total Rushing Yards` / `Total Yards`,
+             `TD/1stDown` = Touchdowns / `Total First Downs`)
+tbl_df(giants1)
+
+giants2 <- giants %>% 
+  group_by(Team) %>% 
+  summarise(`Max TD` = max(Touchdowns), `Min TD` = min(Touchdowns), 
+            `Avg Rushing Yards` = mean(`Total Rushing Yards`),
+            `Avg Passing Yards` = mean(`Total Passing Yards`),
+            `Avg Total Yards` = mean(`Total Yards`))
+tbl_df(giants2)
+
+giants3 <- select(giants, Year, Team, contains("Yards"))
+tbl_df(giants3)
+```  
+
+Finally we create a couple charts to show the Total yards of each team over the years and the passing ratio. The information here conclusively proves that The Giants > Jets.
+
+```{r}  
+ggplot(giants3, aes(x = Year, y = `Total Yards`, color = Team, group = Team)) +
+  geom_point(size = 8) + 
+  geom_line(size = 2) 
+
+ggplot(giants1, aes(x = Year, y = `Passing Ratio`, color = Team, group = Team)) +
+  geom_point(size = 8) + 
+  geom_line(size = 2) 
+            
+```

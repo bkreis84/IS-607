@@ -1,0 +1,43 @@
+---
+title: "Week 7"
+author: "Brian Kreis"
+date: "October 16, 2015"
+output: html_document
+---
+
+First, we load our required packages and data.
+
+```{r}
+library(jsonlite)
+library(XML)
+library(RCurl)
+
+xbooks <- "https://raw.githubusercontent.com/bkreis84/Kreis-Week-7/master/books.xml"
+jbooks <- "https://raw.githubusercontent.com/bkreis84/Kreis-Week-7/master/books.json"
+hbooks<- "https://raw.githubusercontent.com/bkreis84/Kreis-Week-7/master/books.html"
+```
+
+I used the getUrl function in order to make the HTTPS request. The xmlToDataFrame function converts the xml file into an R data frame. The result is sloppy, in that it puts all of the authors into a single column and doesn't recognize the "subchildren". I could have input each author as a child, in which case all 3 tables would have been identical. Just for the sake of seeing what it would look like, I went this way.
+
+```{r}
+xbooks <- getURL(xbooks)
+xframe <- xmlToDataFrame(xbooks)
+xframe
+```
+
+JSON was very straightforward in that a single function was able to create the R table.
+
+```{r}
+jframe <- fromJSON(jbooks)
+jframe
+```
+
+Again we used the getURL function, followed by a relatively simple fucntion to read the HTML information and convert it into a data frame. 
+
+```{r}
+hbooks <- getURL(hbooks)
+hframe <- data.frame(readHTMLTable(hbooks))
+hframe
+```
+
+The html and JSON data fraas I mentioned, I easily could have left each author as a child and had all of the tables match.
